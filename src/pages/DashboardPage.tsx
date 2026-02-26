@@ -1,11 +1,29 @@
-const stats = [
-  { label: 'Daily active users', value: '1,248' },
-  { label: 'Exercise completion rate', value: '68%' },
-  { label: 'Sensitive content detections', value: '17' },
-  { label: 'Top journey', value: 'Overthinking Reset' }
-];
+import { useQuery } from '@tanstack/react-query';
+
+import { fetchAnalyticsOverview } from '../api/admin';
 
 export function DashboardPage() {
+  const analyticsQuery = useQuery({
+    queryKey: ['analytics-overview'],
+    queryFn: fetchAnalyticsOverview
+  });
+
+  if (analyticsQuery.isLoading) {
+    return <p className="text-sm text-slate-500">Loading overview...</p>;
+  }
+
+  if (analyticsQuery.isError || !analyticsQuery.data) {
+    return <p className="text-sm text-red-600">Failed to load overview data.</p>;
+  }
+
+  const summary = analyticsQuery.data.summary;
+  const stats = [
+    { label: 'Daily active users', value: String(summary.dau) },
+    { label: 'Exercise completion rate', value: `${summary.journey_completion_rate}%` },
+    { label: 'Sensitive content detections', value: String(summary.sensitive_content_detections) },
+    { label: 'Top journey', value: summary.top_journey }
+  ];
+
   return (
     <div className="space-y-6">
       <div>
