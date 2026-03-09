@@ -1,8 +1,8 @@
 import { FormEvent, useMemo, useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useNavigate } from 'react-router-dom';
 
 import {
-  changeUserPassword,
   bulkUserAction,
   createUser,
   createProfileForPrimaryUser,
@@ -10,16 +10,14 @@ import {
   deleteUser,
   fetchProfilesByPrimaryUser,
   fetchSupportedLanguages,
-  fetchUserProfile,
   fetchUsers,
   getChildConsent,
   recordChildConsent,
   updateChildProfile,
   updateChildStatus,
-  updateUserProfile,
   updateUser
 } from '../api/admin';
-import type { AdminUser, FamilyProfile, UserProfile } from '../types/admin';
+import type { AdminUser, FamilyProfile } from '../types/admin';
 
 function roleLabel(role: string): string {
   if (role === 'app_user') return 'Primary User';
@@ -52,7 +50,6 @@ const COUNTRIES = [
 export function UsersPage() {
   const queryClient = useQueryClient();
   const [toast, setToast] = useState<{ type: 'ok' | 'err'; text: string } | null>(null);
-  const [selectedUser, setSelectedUser] = useState<AdminUser | null>(null);
   const [familyForUser, setFamilyForUser] = useState<AdminUser | null>(null);
   const [showAddUserModal, setShowAddUserModal] = useState(false);
   const [pendingUserAction, setPendingUserAction] = useState<string | null>(null);
@@ -60,6 +57,7 @@ export function UsersPage() {
   const [filterSearch, setFilterSearch] = useState('');
   const [filterRole, setFilterRole] = useState('all');
   const [filterStatus, setFilterStatus] = useState('all');
+  const navigate = useNavigate();
 
   const usersQuery = useQuery({ queryKey: ['users'], queryFn: fetchUsers });
   const supportedLanguagesQuery = useQuery({ queryKey: ['supported-languages'], queryFn: fetchSupportedLanguages });
@@ -308,7 +306,7 @@ export function UsersPage() {
                 <td className="px-4 py-3 text-slate-600">{formatMemberSince(user.member_since)}</td>
                 <td className="px-4 py-3">
                   <div className="flex flex-wrap gap-2">
-                    <button onClick={() => setSelectedUser(user)} className="rounded-md border border-slate-300 px-2 py-1 text-xs">Edit</button>
+                    <button onClick={() => navigate(`/users-accounts/${user.id}`)} className="rounded-md border border-slate-300 px-2 py-1 text-xs">View Profile</button>
                     <button
                       disabled={pendingUserAction === `status:${user.id}` || pendingUserAction === `delete:${user.id}`}
                       onClick={() => {
@@ -341,25 +339,6 @@ export function UsersPage() {
           </tbody>
         </table>
       </div>
-
-      {selectedUser ? (
-        <EditUserModal
-          supportedLanguages={supportedLanguages}
-          countries={COUNTRIES}
-          user={selectedUser}
-          onClose={() => setSelectedUser(null)}
-          onSave={async (payload) => {
-            await updateUserProfile(selectedUser.id, payload);
-            await refreshUsers();
-            setToast({ type: 'ok', text: 'User profile updated' });
-            setSelectedUser(null);
-          }}
-          onChangePassword={async (newPassword) => {
-            await changeUserPassword(selectedUser.id, newPassword);
-            setToast({ type: 'ok', text: 'Password updated' });
-          }}
-        />
-      ) : null}
 
       {showAddUserModal ? (
         <AddUserModal
@@ -746,159 +725,6 @@ function InfoModal({ title, lines, onClose }: { title: string; lines: string[]; 
         <h4 className="text-lg font-semibold">{title}</h4>
         <div className="mt-3 space-y-1 text-sm text-slate-700">{lines.map((line) => <p key={line}>{line}</p>)}</div>
         <button onClick={onClose} className="mt-4 rounded-md border border-slate-300 px-3 py-1 text-sm">Close</button>
-      </div>
-    </div>
-  );
-}
-
-function EditUserModal({
-  supportedLanguages,
-  countries,
-  user,
-  onClose,
-  onSave,
-  onChangePassword
-}: {
-  supportedLanguages: string[];
-  countries: string[];
-  user: AdminUser;
-  onClose: () => void;
-  onSave: (payload: { full_name: string; role: string; is_active: boolean; country: string; language: string }) => Promise<void>;
-  onChangePassword: (newPassword: string) => Promise<void>;
-}) {
-  const profileQuery = useQuery({
-    queryKey: ['user-profile', user.id],
-    queryFn: () => fetchUserProfile(user.id)
-  });
-  const [newPassword, setNewPassword] = useState('');
-  const [working, setWorking] = useState(false);
-
-  if (profileQuery.isLoading) {
-    return (
-      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 p-4">
-        <div className="w-full max-w-md rounded-xl bg-white p-5 shadow-xl text-sm text-slate-600">Loading user profile...</div>
-      </div>
-    );
-  }
-
-  if (profileQuery.isError || !profileQuery.data) {
-    return (
-      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 p-4">
-        <div className="w-full max-w-md rounded-xl bg-white p-5 shadow-xl">
-          <p className="text-sm text-red-600">Failed to load user profile.</p>
-          <button onClick={onClose} className="mt-3 rounded-md border border-slate-300 px-3 py-1 text-sm">Close</button>
-        </div>
-      </div>
-    );
-  }
-
-  return <EditUserModalForm initial={profileQuery.data} supportedLanguages={supportedLanguages} countries={countries} onClose={onClose} onSave={onSave} onChangePassword={onChangePassword} newPassword={newPassword} setNewPassword={setNewPassword} working={working} setWorking={setWorking} />;
-}
-
-function EditUserModalForm({
-  initial,
-  supportedLanguages,
-  countries,
-  onClose,
-  onSave,
-  onChangePassword,
-  newPassword,
-  setNewPassword,
-  working,
-  setWorking
-}: {
-  initial: UserProfile;
-  supportedLanguages: string[];
-  countries: string[];
-  onClose: () => void;
-  onSave: (payload: { full_name: string; role: string; is_active: boolean; country: string; language: string }) => Promise<void>;
-  onChangePassword: (newPassword: string) => Promise<void>;
-  newPassword: string;
-  setNewPassword: (v: string) => void;
-  working: boolean;
-  setWorking: (v: boolean) => void;
-}) {
-  const [fullName, setFullName] = useState(initial.full_name || '');
-  const [role, setRole] = useState(initial.role);
-  const [isActive, setIsActive] = useState(initial.is_active);
-  const [country, setCountry] = useState(initial.country);
-  const [language, setLanguage] = useState(initial.language || supportedLanguages[0] || 'en');
-
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 p-4">
-      <div className="w-full max-w-md rounded-xl bg-white p-5 shadow-xl">
-        <h4 className="text-lg font-semibold">User Details</h4>
-        <p className="mt-1 text-sm text-slate-500">{initial.email}</p>
-        <p className="mt-1 text-xs text-slate-400">Member since: {formatMemberSince(initial.member_since)}</p>
-        <div className="mt-4 space-y-3">
-          <input
-            value={fullName}
-            onChange={(e) => setFullName(e.target.value)}
-            placeholder="Full name"
-            className="w-full rounded-lg border px-3 py-2 text-sm"
-          />
-          <select value={role} onChange={(e) => setRole(e.target.value)} className="w-full rounded-lg border px-3 py-2 text-sm">
-            <option value="admin">admin</option>
-            <option value="content_editor">content_editor</option>
-            <option value="support">support</option>
-            <option value="analyst">analyst</option>
-            <option value="app_user">app_user</option>
-          </select>
-          <label className="flex items-center gap-2 text-sm">
-            <input type="checkbox" checked={isActive} onChange={(e) => setIsActive(e.target.checked)} /> Active
-          </label>
-          <select value={country} onChange={(e) => setCountry(e.target.value)} className="w-full rounded-lg border px-3 py-2 text-sm">
-            <option value="">Select country</option>
-            {countries.map((c) => (
-              <option key={c} value={c}>
-                {c}
-              </option>
-            ))}
-          </select>
-          <select value={language} onChange={(e) => setLanguage(e.target.value)} className="w-full rounded-lg border px-3 py-2 text-sm">
-            {supportedLanguages.map((lang) => (
-              <option key={lang} value={lang}>
-                {lang}
-              </option>
-            ))}
-          </select>
-        </div>
-
-        <div className="mt-4 rounded-lg border border-slate-200 p-3">
-          <p className="text-sm font-medium text-slate-800">Password Change</p>
-          <input
-            type="password"
-            value={newPassword}
-            onChange={(e) => setNewPassword(e.target.value)}
-            placeholder="New password (min 8 chars)"
-            className="mt-2 w-full rounded-lg border px-3 py-2 text-sm"
-          />
-          <button
-            disabled={working || newPassword.length < 8}
-            onClick={async () => {
-              setWorking(true);
-              try {
-                await onChangePassword(newPassword);
-                setNewPassword('');
-              } finally {
-                setWorking(false);
-              }
-            }}
-            className="mt-2 rounded-md border border-slate-300 px-3 py-1 text-sm disabled:opacity-60"
-          >
-            {working ? 'Updating...' : 'Change Password'}
-          </button>
-        </div>
-
-        <div className="mt-4 flex gap-2">
-          <button onClick={onClose} className="rounded-md border border-slate-300 px-3 py-1 text-sm">Cancel</button>
-          <button
-            onClick={() => onSave({ full_name: fullName, role, is_active: isActive, country, language: language || 'en' })}
-            className="rounded-md bg-slate-900 px-3 py-1 text-sm text-white"
-          >
-            Save
-          </button>
-        </div>
       </div>
     </div>
   );

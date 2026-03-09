@@ -38,6 +38,21 @@ export type UserProfile = {
   country: string;
   language: string;
   member_since: string | null;
+  invite_code: string | null;
+  onboarding_step: string;
+  onboarding_completed: boolean;
+  onboarding_updated_at: string | null;
+  onboarding_state: Record<string, unknown>;
+  mood_logs: MoodLog[];
+};
+
+export type MoodLog = {
+  id: number;
+  mood_id: string;
+  mood_label: string;
+  checkin_date: string;
+  created_at: string;
+  updated_at: string;
 };
 
 export type FamilyProfile = {
@@ -123,4 +138,77 @@ export type SupportedLanguagesResponse = {
     name: string;
     enabled: boolean;
   }[];
+};
+
+export type PromptTemplateItem = {
+  key: string;
+  label: string;
+  system_prompt: string;
+  developer_prompt: string;
+  enabled: boolean;
+};
+
+export type PromptTemplatesResponse = {
+  items: PromptTemplateItem[];
+};
+
+export type ModelConfiguration = {
+  provider: string;
+  default_model: string;
+  onboarding_model: string;
+  fallback_model: string;
+  base_url: string;
+  timeout_seconds: number;
+  temperature: number;
+  enabled: boolean;
+};
+
+export type OnboardingTextScreenConfig = {
+  key: string;
+  title: string;
+  subtitle: string;
+  primary_cta: string;
+  secondary_cta: string;
+  enabled: boolean;
+};
+
+export type OnboardingTextConfiguration = {
+  screens: OnboardingTextScreenConfig[];
+};
+
+export type ToggleItem = {
+  key: string;
+  label: string;
+  enabled: boolean;
+};
+
+export type OnboardingPolicyConfiguration = {
+  onboarding_enabled: boolean;
+  allow_resume: boolean;
+  enabled_user_types: ToggleItem[];
+  enabled_account_modes: ToggleItem[];
+  allow_family_flows: boolean;
+  require_invite_for_family_join: boolean;
+};
+
+export type FirstReframeConfig = {
+  enabled: boolean;
+  model_name: string;
+  temperature: number;
+  max_tokens: number;
+  schema_version: string;
+  show_pattern_label: boolean;
+  show_titles: boolean;
+  system_prompt: string;
+  developer_prompt: string;
+  fallback_template_json: Record<string, unknown>;
+  style_overrides: Record<string, unknown>;
+  goal_overrides: Record<string, unknown>;
+  user_type_overrides: Record<string, unknown>;
+  safety_overrides: Record<string, unknown>;
+};
+
+export type FirstReframePreviewResponse = {
+  model: string;
+  result: Record<string, unknown>;
 };

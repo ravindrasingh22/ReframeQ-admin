@@ -7,8 +7,14 @@ import { ContentLibraryPage } from '../pages/ContentLibraryPage';
 import { DashboardPage } from '../pages/DashboardPage';
 import { LanguageSettingsPage } from '../pages/LanguageSettingsPage';
 import { LoginPage } from '../pages/LoginPage';
+import { ModelConfigurationPage } from '../pages/ModelConfigurationPage';
+import { OnboardingAIPage } from '../pages/OnboardingAIPage';
+import { OnboardingPolicyConfigurationPage } from '../pages/OnboardingPolicyConfigurationPage';
+import { OnboardingTextConfigurationPage } from '../pages/OnboardingTextConfigurationPage';
+import { PromptsConfigurationPage } from '../pages/PromptsConfigurationPage';
 import { SectionPage } from '../pages/SectionPage';
 import { UsersPage } from '../pages/UsersPage';
+import { UserProfilePage } from '../pages/UserProfilePage';
 
 export function AppRouter() {
   return (
@@ -19,22 +25,14 @@ export function AppRouter() {
         <Route element={<AdminLayout />}>
           <Route path="/" element={<DashboardPage />} />
           <Route path="/users-accounts" element={<UsersPage />} />
+          <Route path="/users-accounts/:userId" element={<UserProfilePage />} />
           <Route path="/language-settings" element={<LanguageSettingsPage />} />
           <Route path="/content-library" element={<ContentLibraryPage />} />
-          <Route
-            path="/ai-experience"
-            element={
-              <SectionPage
-                title="AI Experience"
-                subtitle="Prompt controls and response-quality settings for wellness coaching."
-                bullets={[
-                  'Prompt templates for Reframe Coach and thought helper',
-                  'Style presets: friendly, structured, concise',
-                  'Low-confidence routing to clarifying questions and safer phrasing rules'
-                ]}
-              />
-            }
-          />
+          <Route path="/prompts-configuration" element={<PromptsConfigurationPage />} />
+          <Route path="/model-configuration" element={<ModelConfigurationPage />} />
+          <Route path="/onboarding-text-configuration" element={<OnboardingTextConfigurationPage />} />
+          <Route path="/onboarding-policy-configuration" element={<OnboardingPolicyConfigurationPage />} />
+          <Route path="/ai-experience" element={<OnboardingAIPage />} />
           <Route
             path="/safety-boundaries"
             element={

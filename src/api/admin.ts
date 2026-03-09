@@ -11,7 +11,14 @@ import type {
   UpdateUserPayload,
   UserProfile,
   UsersResponse,
-  SupportedLanguagesResponse
+  SupportedLanguagesResponse,
+  FirstReframeConfig,
+  FirstReframePreviewResponse,
+  ModelConfiguration,
+  OnboardingPolicyConfiguration,
+  OnboardingTextConfiguration,
+  PromptTemplateItem,
+  PromptTemplatesResponse
 } from '../types/admin';
 
 export async function loginAdmin(email: string, password: string) {
@@ -153,4 +160,72 @@ export async function updateSupportedLanguages(supportedLanguages: string[]) {
     supported_languages: supportedLanguages
   });
   return response.data as SupportedLanguagesResponse;
+}
+
+export async function fetchPromptTemplates() {
+  const response = await apiClient.get('/api/admin/settings/prompts');
+  return response.data as PromptTemplatesResponse;
+}
+
+export async function updatePromptTemplates(items: PromptTemplateItem[]) {
+  const response = await apiClient.put('/api/admin/settings/prompts', { items });
+  return response.data as PromptTemplatesResponse;
+}
+
+export async function fetchModelConfiguration() {
+  const response = await apiClient.get('/api/admin/settings/models');
+  return response.data as ModelConfiguration;
+}
+
+export async function updateModelConfiguration(payload: ModelConfiguration) {
+  const response = await apiClient.put('/api/admin/settings/models', payload);
+  return response.data as ModelConfiguration;
+}
+
+export async function fetchOnboardingTextConfiguration() {
+  const response = await apiClient.get('/api/admin/settings/onboarding-text');
+  return response.data as OnboardingTextConfiguration;
+}
+
+export async function updateOnboardingTextConfiguration(payload: OnboardingTextConfiguration) {
+  const response = await apiClient.put('/api/admin/settings/onboarding-text', payload);
+  return response.data as OnboardingTextConfiguration;
+}
+
+export async function fetchOnboardingPolicyConfiguration() {
+  const response = await apiClient.get('/api/admin/settings/onboarding-policy');
+  return response.data as OnboardingPolicyConfiguration;
+}
+
+export async function updateOnboardingPolicyConfiguration(payload: OnboardingPolicyConfiguration) {
+  const response = await apiClient.put('/api/admin/settings/onboarding-policy', payload);
+  return response.data as OnboardingPolicyConfiguration;
+}
+
+export async function fetchFirstReframeConfig() {
+  const response = await apiClient.get('/api/admin/ai/onboarding/first-reframe');
+  return response.data as FirstReframeConfig;
+}
+
+export async function updateFirstReframeConfig(payload: FirstReframeConfig) {
+  const response = await apiClient.put('/api/admin/ai/onboarding/first-reframe', payload);
+  return response.data as FirstReframeConfig;
+}
+
+export async function previewFirstReframe(payload: {
+  user_thought: string;
+  user_type: string;
+  account_mode: string;
+  goal: string;
+  secondary_goals: string[];
+  clarity_score?: number;
+  control_score?: number;
+  mental_noise_score?: number;
+  readiness_score?: number;
+  coach_style: string;
+  language: string;
+  country: string;
+}) {
+  const response = await apiClient.post('/api/admin/ai/onboarding/first-reframe/preview', payload);
+  return response.data as FirstReframePreviewResponse;
 }

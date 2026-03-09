@@ -11,7 +11,11 @@ const navItems = [
   { to: '/users-accounts', label: 'Users & Accounts' },
   { to: '/language-settings', label: 'Language Settings' },
   { to: '/content-library', label: 'Content Library' },
-  { to: '/ai-experience', label: 'AI Experience' },
+  { to: '/prompts-configuration', label: 'Prompts Configuration' },
+  { to: '/model-configuration', label: 'Model Configuration' },
+  { to: '/onboarding-text-configuration', label: 'Onboarding Text' },
+  { to: '/onboarding-policy-configuration', label: 'Onboarding Policy' },
+  { to: '/ai-experience', label: 'AI Preview' },
   { to: '/safety-boundaries', label: 'Safety & Boundaries' },
   { to: '/analytics', label: 'Analytics' },
   { to: '/audit-logs', label: 'Audit Logs' }
