@@ -33,6 +33,10 @@ export type UserProfile = {
   user_id: number;
   email: string;
   full_name: string;
+  mobile_country_code: string;
+  mobile_number: string;
+  city: string;
+  state: string;
   role: string;
   is_active: boolean;
   country: string;

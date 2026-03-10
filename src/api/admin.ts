@@ -48,7 +48,17 @@ export async function fetchUserProfile(userId: number) {
 
 export async function updateUserProfile(
   userId: number,
-  payload: { full_name: string; role: string; is_active: boolean; country: string; language: string }
+  payload: {
+    full_name: string;
+    mobile_country_code: string;
+    mobile_number: string;
+    city: string;
+    state: string;
+    role: string;
+    is_active: boolean;
+    country: string;
+    language: string;
+  }
 ) {
   const response = await apiClient.patch(`/api/admin/users/${userId}/profile`, payload);
   return response.data as UserProfile;

@@ -79,7 +79,17 @@ export function UserProfilePage() {
   });
 
   const updateMutation = useMutation({
-    mutationFn: (payload: { full_name: string; role: string; is_active: boolean; country: string; language: string }) =>
+    mutationFn: (payload: {
+      full_name: string;
+      mobile_country_code: string;
+      mobile_number: string;
+      city: string;
+      state: string;
+      role: string;
+      is_active: boolean;
+      country: string;
+      language: string;
+    }) =>
       updateUserProfile(numericUserId, payload),
     onSuccess: async () => {
       setToast({ type: 'ok', text: 'User profile updated' });
@@ -196,7 +206,17 @@ function ProfileForm({
   working: boolean;
   newPassword: string;
   setNewPassword: (value: string) => void;
-  onSave: (payload: { full_name: string; role: string; is_active: boolean; country: string; language: string }) => void;
+  onSave: (payload: {
+    full_name: string;
+    mobile_country_code: string;
+    mobile_number: string;
+    city: string;
+    state: string;
+    role: string;
+    is_active: boolean;
+    country: string;
+    language: string;
+  }) => void;
   onChangePassword: (password: string) => void;
   familyProfiles: Awaited<ReturnType<typeof fetchProfilesByPrimaryUser>>['items'];
   familyLoading: boolean;
@@ -204,6 +224,10 @@ function ProfileForm({
   onToggleChildStatus: (profileId: number, active: boolean) => void;
 }) {
   const [fullName, setFullName] = useState(profile.full_name || '');
+  const [mobileCountryCode, setMobileCountryCode] = useState(profile.mobile_country_code || '');
+  const [mobileNumber, setMobileNumber] = useState(profile.mobile_number || '');
+  const [city, setCity] = useState(profile.city || '');
+  const [stateName, setStateName] = useState(profile.state || '');
   const [role, setRole] = useState(profile.role);
   const [isActive, setIsActive] = useState(profile.is_active);
   const [country, setCountry] = useState(profile.country);
@@ -263,6 +287,13 @@ function ProfileForm({
         <MetricCard label="Latest Mood" value={latestMood} hint={moodLogs[0] ? formatDate(moodLogs[0].updated_at) : 'No check-ins yet'} />
       </section>
 
+      <section className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
+        <MetricCard label="Mobile" value={[profile.mobile_country_code, profile.mobile_number].filter(Boolean).join(' ') || '-'} hint="Saved contact" />
+        <MetricCard label="City" value={profile.city || '-'} hint="Saved location" />
+        <MetricCard label="State" value={profile.state || '-'} hint="Saved location" />
+        <MetricCard label="Country" value={profile.country || '-'} hint={profile.language || 'en'} />
+      </section>
+
       <div className="grid grid-cols-1 gap-6 xl:grid-cols-[minmax(0,1fr)_420px]">
         <section className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
         <h3 className="text-lg font-semibold text-slate-900">Profile Details</h3>
@@ -271,6 +302,14 @@ function ProfileForm({
 
         <div className="mt-4 grid grid-cols-1 gap-3">
           <input value={fullName} onChange={(e) => setFullName(e.target.value)} placeholder="Full name" className="rounded-lg border px-3 py-2 text-sm" />
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-[140px_minmax(0,1fr)]">
+            <input value={mobileCountryCode} onChange={(e) => setMobileCountryCode(e.target.value)} placeholder="+91" className="rounded-lg border px-3 py-2 text-sm" />
+            <input value={mobileNumber} onChange={(e) => setMobileNumber(e.target.value)} placeholder="Mobile number" className="rounded-lg border px-3 py-2 text-sm" />
+          </div>
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+            <input value={city} onChange={(e) => setCity(e.target.value)} placeholder="City" className="rounded-lg border px-3 py-2 text-sm" />
+            <input value={stateName} onChange={(e) => setStateName(e.target.value)} placeholder="State" className="rounded-lg border px-3 py-2 text-sm" />
+          </div>
           <select value={role} onChange={(e) => setRole(e.target.value)} className="rounded-lg border px-3 py-2 text-sm">
             <option value="admin">admin</option>
             <option value="content_editor">content_editor</option>
@@ -318,7 +357,19 @@ function ProfileForm({
 
         <div className="mt-4">
           <button
-            onClick={() => onSave({ full_name: fullName, role, is_active: isActive, country, language: language || 'en' })}
+            onClick={() =>
+              onSave({
+                full_name: fullName,
+                mobile_country_code: mobileCountryCode,
+                mobile_number: mobileNumber,
+                city,
+                state: stateName,
+                role,
+                is_active: isActive,
+                country,
+                language: language || 'en'
+              })
+            }
             className="rounded-md bg-slate-900 px-3 py-2 text-sm text-white"
           >
             Save Profile
